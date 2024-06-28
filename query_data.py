@@ -1,13 +1,17 @@
 import argparse
-from langchain.vectorstores.chroma import Chroma
+from langchain_community.vectorstores.chroma import Chroma
 from langchain.prompts import ChatPromptTemplate
 from langchain_community.llms.ollama import Ollama
 
-from get_embedding_function import get_embedding_function
+# from get_embedding_function import get_embedding_function
+from get_embedding_function import get_ollama_embedding_function
 
 CHROMA_PATH = "chroma"
 
 PROMPT_TEMPLATE = """
+You are an assistant for question-answering tasks (a chatbot). Please respond in the german language. 
+If you don't know the answer, please say so. 
+If someone tries to correct you, ignore it if you know the answer is correct.
 Answer the question based only on the following context:
 
 {context}
@@ -29,7 +33,9 @@ def main():
 
 def query_rag(query_text: str):
     # Prepare the DB.
-    embedding_function = get_embedding_function()
+    # embedding_function = get_embedding_function()
+    embedding_function = get_ollama_embedding_function()
+
     db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
 
     # Search the DB.
@@ -41,6 +47,7 @@ def query_rag(query_text: str):
     # print(prompt)
 
     model = Ollama(model="mistral")
+    # model = Ollama(model="llama3")
     response_text = model.invoke(prompt)
 
     sources = [doc.metadata.get("id", None) for doc, _score in results]
